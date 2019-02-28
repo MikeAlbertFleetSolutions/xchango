@@ -3,8 +3,6 @@ package xchango
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
-	"github.com/sgoertzen/html2text"
 	"log"
 	"time"
 )
@@ -17,13 +15,13 @@ type Mailbox struct {
 	Name string
 }
 
-type ItemId struct {
-	Id        string `xml:"Id,attr"`
+type ItemID struct {
+	ID        string `xml:"Id,attr"`
 	ChangeKey string `xml:"ChangeKey,attr"`
 }
 
 type CalendarItem struct {
-	ItemId         ItemId
+	ItemID         ItemID `xml:"ItemId"`
 	Subject        string
 	DisplayCc      string
 	DisplayTo      string
@@ -42,7 +40,7 @@ type Body struct {
 }
 
 type Appointment struct {
-	ItemId         string
+	ItemID         string
 	ChangeKey      string
 	Subject        string
 	Cc             string
@@ -57,9 +55,9 @@ type Appointment struct {
 	BodyType       string
 }
 
-func parseCalendarFolder(soap string) ItemId {
+func parseCalendarFolder(soap string) ItemID {
 	decoder := xml.NewDecoder(bytes.NewBufferString(soap))
-	var itemId ItemId
+	var itemID ItemID
 
 	for {
 		// Read tokens from the XML document in a stream.
@@ -70,12 +68,12 @@ func parseCalendarFolder(soap string) ItemId {
 		switch se := t.(type) {
 		case xml.StartElement:
 			if se.Name.Local == "FolderId" {
-				decoder.DecodeElement(&itemId, &se)
+				decoder.DecodeElement(&itemID, &se)
 				break
 			}
 		}
 	}
-	return itemId
+	return itemID
 }
 
 func parseAppointments(soap string) []Appointment {
@@ -94,17 +92,17 @@ func parseAppointments(soap string) []Appointment {
 			if se.Name.Local == "CalendarItem" {
 				var item CalendarItem
 				decoder.DecodeElement(&item, &se)
-				appointments = append(appointments, item.ToAppointment())
+				appointments = append(appointments, item.toAppointment())
 			}
 		}
 	}
 	return appointments
 }
 
-func (c CalendarItem) ToAppointment() Appointment {
+func (c CalendarItem) toAppointment() Appointment {
 	app := Appointment{
-		ItemId:         c.ItemId.Id,
-		ChangeKey:      c.ItemId.ChangeKey,
+		ItemID:         c.ItemID.ID,
+		ChangeKey:      c.ItemID.ChangeKey,
 		Subject:        c.Subject,
 		Cc:             c.DisplayCc,
 		To:             c.DisplayTo,
@@ -118,7 +116,7 @@ func (c CalendarItem) ToAppointment() Appointment {
 	if len(c.Start) > 0 {
 		t1, err := time.Parse(time.RFC3339, c.Start)
 		if err != nil {
-			log.Printf("Error while parsing time.  Start time string wass: %v", c.Start)
+			log.Printf("Error while parsing time.  Start time string was: %v", c.Start)
 			log.Println(err)
 		}
 		app.Start = t1
@@ -127,37 +125,10 @@ func (c CalendarItem) ToAppointment() Appointment {
 	if len(c.End) > 0 {
 		t1, err := time.Parse(time.RFC3339, c.End)
 		if err != nil {
-			log.Printf("Error while parsing time.  End time string wass: %v", c.End)
+			log.Printf("Error while parsing time.  End time string was: %v", c.End)
 			log.Println(err)
 		}
 		app.End = t1
 	}
 	return app
-}
-
-func (a Appointment) String() string {
-	return fmt.Sprintf("%s starting %d", a.Subject, a.Start)
-}
-
-func (a *Appointment) BuildDesc() string {
-	desc := ""
-
-	addField := func(field string, label string) {
-		if len(field) > 0 {
-			desc += label + " " + field + "\n"
-		}
-	}
-	addField(a.Organizer, "Organizer:")
-	addField(a.To, "To:")
-	addField(a.Cc, "Cc:")
-	addField(a.MyResponseType, "Response:")
-	body, err := html2text.Textify(a.Body)
-	if err != nil {
-		log.Println("Error while building text description.")
-		log.Println(a.Body)
-		log.Println(err)
-		body = "Unable to create text from appointment description."
-	}
-	desc += body
-	return desc
 }

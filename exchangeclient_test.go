@@ -1,39 +1,31 @@
 package xchango
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-type TestConfig struct {
-	ExchangeConfig
-	Maxsize           int
-	MyExchangeVersion string
-	MyDomain          string
-	MyExchangeURL     string
-}
-
-func (t TestConfig) MaxFetchSize() int       { return t.Maxsize }
-func (t TestConfig) ExchangeVersion() string { return t.MyExchangeVersion }
-func (t TestConfig) UserDomain() string      { return t.MyDomain }
-func (t TestConfig) ExchangeURL() string     { return t.MyExchangeURL }
-func (t TestConfig) LookAheadDays() int      { return 7 }
-
-func TestSetConfig2006(t *testing.T) {
-	SetExchangeConfig(TestConfig{MyExchangeVersion: "2006", MyExchangeURL: "https://www.mysite.com/some/dir/here.html"})
-	assert.Equal(t, "www.mysite.com", host)
-}
-
 func TestBuildCalendarDetailRequest(t *testing.T) {
-	SetExchangeConfig(TestConfig{Maxsize: 101, MyExchangeVersion: "2006"})
+	config := ExchangeConfig{
+		MaxFetchSize: 101,
+	}
+
+	xchang, err := NewExchangeClient(config)
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
 
 	appoints := []Appointment{
-		Appointment{ItemId: "alpha", ChangeKey: "123"},
-		Appointment{ItemId: "beta", ChangeKey: "456"},
+		Appointment{ItemID: "alpha", ChangeKey: "123"},
+		Appointment{ItemID: "beta", ChangeKey: "456"},
 	}
-	requestbytes := buildCalendarDetailRequest(appoints)
+	requestbytes, err := xchang.buildCalendarDetailRequest(appoints)
+	if err != nil {
+		return
+	}
 	request := string(requestbytes)
 	assert.NotNil(t, request)
 
@@ -41,17 +33,20 @@ func TestBuildCalendarDetailRequest(t *testing.T) {
 	assert.True(t, strings.Contains(request, `<typ:ItemId Id="beta" ChangeKey="456" />`))
 }
 
-func TestBuildCalendarDetailRequestDomain(t *testing.T) {
-	SetExchangeConfig(TestConfig{Maxsize: 101, MyDomain: "mydomain", MyExchangeVersion: "2006"})
-
-	// TODO, how can I test the domain?!!
-}
-
 func TestBuildCalendarItemRequest(t *testing.T) {
+	config := ExchangeConfig{
+		MaxFetchSize: 99,
+	}
 
-	SetExchangeConfig(TestConfig{Maxsize: 99, MyExchangeVersion: "2006"})
+	xchang, err := NewExchangeClient(config)
+	if err != nil {
+		t.Fatalf("%+v", err)
+	}
 
-	requestbytes := buildCalendarItemRequest("black", "ninja")
+	requestbytes, err := xchang.buildCalendarItemRequest("black", "ninja")
+	if err != nil {
+		return
+	}
 	request := string(requestbytes)
 	assert.NotNil(t, request)
 

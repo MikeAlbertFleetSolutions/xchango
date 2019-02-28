@@ -1,10 +1,11 @@
 package xchango
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseCalendarData(t *testing.T) {
@@ -30,7 +31,7 @@ func TestParseCalendarData(t *testing.T) {
 </s:Envelope>`
 	item := parseCalendarFolder(results)
 
-	assert.Equal(t, item.Id, "folderid")
+	assert.Equal(t, item.ID, "folderid")
 	assert.Equal(t, item.ChangeKey, "changeKey")
 }
 
@@ -90,7 +91,7 @@ func TestParseAppointments(t *testing.T) {
 
 	assert.NotNil(t, appointments)
 	assert.Equal(t, 2, len(appointments))
-	assert.Equal(t, "secondid", appointments[1].ItemId)
+	assert.Equal(t, "secondid", appointments[1].ItemID)
 	assert.Equal(t, "Coding in Go", appointments[1].Subject)
 	assert.Equal(t, "Suthers, Sally; Mr. Smithers", appointments[1].Cc)
 	assert.Equal(t, "Legoman; Batman", appointments[1].To)
@@ -176,8 +177,8 @@ func TestToAppointment(t *testing.T) {
 		Start:          "2015-04-30T15:00:00Z",
 		End:            "2015-04-30T16:00:00Z",
 		MyResponseType: "Organizer",
-		ItemId: ItemId{
-			Id:        "567",
+		ItemID: ItemID{
+			ID:        "567",
 			ChangeKey: "234",
 		},
 		Body: Body{
@@ -189,8 +190,8 @@ func TestToAppointment(t *testing.T) {
 	start, _ := time.Parse(time.RFC3339, "2015-04-30T15:00:00Z")
 	end, _ := time.Parse(time.RFC3339, "2015-04-30T16:00:00Z")
 
-	app := item.ToAppointment()
-	assert.Equal(t, "567", app.ItemId)
+	app := item.toAppointment()
+	assert.Equal(t, "567", app.ItemID)
 	assert.Equal(t, "234", app.ChangeKey)
 	assert.Equal(t, "Hello there!", app.Subject)
 	assert.Equal(t, "ccs", app.Cc)

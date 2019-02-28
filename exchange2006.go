@@ -4,18 +4,18 @@ type exchange2006 struct{}
 
 func (exchange2006) FolderRequest() string {
 	return `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:mes="http://schemas.microsoft.com/exchange/services/2006/messages">
-<soapenv:Header>
-</soapenv:Header>
-<soapenv:Body>
-<mes:GetFolder>
-<mes:FolderShape>
-<typ:BaseShape>IdOnly</typ:BaseShape>
-</mes:FolderShape>
-<mes:FolderIds>
-<typ:DistinguishedFolderId Id="calendar" />
-</mes:FolderIds>
-</mes:GetFolder>
-</soapenv:Body>
+   <soapenv:Header>
+   </soapenv:Header>
+   <soapenv:Body>
+      <mes:GetFolder>
+         <mes:FolderShape>
+            <typ:BaseShape>IdOnly</typ:BaseShape>
+         </mes:FolderShape>
+         <mes:FolderIds>
+            <typ:DistinguishedFolderId Id="calendar" />
+         </mes:FolderIds>
+      </mes:GetFolder>
+   </soapenv:Body>
 </soapenv:Envelope>`
 }
 
@@ -32,7 +32,7 @@ func (exchange2006) CalendarRequest() string {
          <mes:CalendarView MaxEntriesReturned="{{ .MaxFetchSize }}" StartDate="{{ .StartDate }}" EndDate="{{ .EndDate }}"/>
          <mes:ParentFolderIds>
            <!--You have a CHOICE of the next 2 items at this level-->
-            <typ:FolderId Id="{{ .FolderId }}" ChangeKey="{{ .ChangeKey }}" />
+            <typ:FolderId Id="{{ .FolderID }}" ChangeKey="{{ .ChangeKey }}" />
          </mes:ParentFolderIds>
       </mes:FindItem>
    </soapenv:Body>
@@ -61,7 +61,7 @@ func (exchange2006) CalendarDetailRequest() string {
         </typ:AdditionalProperties>
     </mes:ItemShape>
     <mes:ItemIds>
-      {{ range .Appointments }}<typ:ItemId Id="{{ .ItemId }}" ChangeKey="{{ .ChangeKey}}" />
+      {{ range .Appointments }}<typ:ItemId Id="{{ .ItemID }}" ChangeKey="{{ .ChangeKey }}" />
     {{ end }}</mes:ItemIds>
 </mes:GetItem>
 </soapenv:Body>

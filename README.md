@@ -1,32 +1,47 @@
-# Exchango
-Read calendar information from an Exchange Server using Go.
+# xchango
 
-[![Build Status](https://travis-ci.org/sgoertzen/xchango.svg?branch=master)](https://travis-ci.org/sgoertzen/xchango)
-[![Build Status](https://semaphoreci.com/api/v1/projects/fb260216-9410-469d-a2fd-6920887e3461/431376/badge.svg)](https://semaphoreci.com/sgoertzen/xchango)
+Read calendar information from an Exchange Server using Go.  Forked from [sgoertzen/xchango](https://github.com/sgoertzen/xchango).  Changed to use NTLM for authentication and how caller interacts with Exchange Client.
 
-## Install
-go get github.com/sgoertzen/xchango
+# Example
+```golang
+package main
 
-## Usage
-```sh
-import "github.com/sgoertzen/xchango"
+import (
+	"log"
+	"time"
+
+	"github.com/MikeAlbertFleetSolutions/xchango"
+)
 
 func main() {
-	xchango.SetExchangeConfig(/* your class that implements ExchangeConfig interface */)
-	
-	user := ExchangeUser { Username: "sally", Password: "123" }
-	cal, err := xchango.GetExchangeCalendar(user)
+	xchangconfig := xchango.ExchangeConfig{
+		ExchangeUser: xchango.ExchangeUser{
+			Domain:   "oz",
+			Username: "big.kahuna",
+			Password: "charge!",
+		},
+		MaxFetchSize: 5,
+		ExchangeURL:  "https://mail.oz.com/EWS/Exchange.asmx",
+	}
+
+	xchang, err := xchango.NewExchangeClient(xchangconfig)
 	if err != nil {
-		// handle error
+		log.Fatalf("%+v", err)
 	}
-	
-	appointments, er := xchango.GetExchangeAppointments(user, cal)
-	if er != nil {
-		// handle error
+
+	cal, err := xchang.GetCalendar()
+	if err != nil {
+		log.Fatalf("%+v", err)
 	}
-	
-	for _, app := range appointments {
-		// Do something with each appointment
+
+	appointments, err := xchang.GetAppointments(cal)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+
+	newYork, err := time.LoadLocation("America/New_York")
+	for _, appointment := range *appointments {
+		log.Printf("APPOINTMENT %+v %+v\n", appointment.Start.In(newYork), appointment.Subject)
 	}
 }
 ```
